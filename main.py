@@ -40,9 +40,9 @@ class Grid:
 	def __init__(self, l = [], shape = (3, 3)):
 		self.shape = shape
 		if l == []:
-			grid = self.grid()
+			l = self.grid()
 
-		self.grid = grid
+		self.grid = l
 
 	def grid(self):
 		shape = self.shape
@@ -58,50 +58,51 @@ class Grid:
 	def get(self):
 		return(self.grid)
 
-	def read(self, i): # zatial funguje iba ak shape = (3, 3) 
-		if i <= 3 and i >= 1:
-			i -= 1
-			return(self.grid[0][i])
-		elif i >= 4 and i <= 6:
-			i = i - 4
-			return(self.grid[1][i])
-		elif i >= 7 and i <= 9:
-			i = i - 5
-			return(self.grid[2][i])
-		else:
-			raise IndexError()
+	def read(self, i):
+		i -= 1 # counting from zero
+		l = []
+		for item in self.grid:
+			for n in item:
+				l.append(n)
+		return(l[i])
 
-	def write(self, i, new): # zatial (trosku) funguje iba ak shape = (3, 3)
-		if i <= 3 and i >= 1:
-			i -= 1
-			self.grid[0][i] = new
-		elif i <= 4 and i >= 6: # preco to nefunguje?
-			i -= 4
-			self.grid[1][i] = new
-		elif i <= 7 and i >= 9:
-			i -= 5
-			self.grid[2][i] = new
-		else:
-			raise IndexError()
+	def write(self, move, new):
+		move -= 1 # counting from zero
+		copy = []
+		for item in self.grid:
+			for n in item:
+				copy.append(n)
+		copy[move] = new # overwrite old value
+		max_value = self.shape[0] * self.shape[1]
+		max_obj = self.shape[0]
+		g = []
+		index_multiplier = 0
+		for n in range(0, max_value):
+			objs = []
+			for index in range(0, max_obj):
+				index += index_multiplier
+				try:
+					objs.append(copy[index])
+				except Exception:
+					self.grid = g
+					return(True)
+			g.append(objs)
+			index_multiplier += max_obj
 
-	def get_index(self, i): # AKO TOTO MOZE FUNGOVAT
-		list_number = math.floor(i / self.shape[1])
-		return(list_number)
-
-	def get_position(self, i): # ????
-		return(math.floor(self.shape[0] / i))
+	def draw(self):
+		pass
 
 player_turn = 1
 
 grid_shape = (3, 3)
 grid_list = []
 grid_max = grid_shape[0] * grid_shape[1] # tazka matika
-grid = Grid(l = grid_list, shape = grid_shape)
+grid = Grid(l = [[0,0,0], [1,0,0], [0,0,0]], shape = grid_shape)
 
 print(grid_help)
 
 while True: # nic nerobi
-	move = input("Move? ")
+	move = input("\nMove? ")
 	if not is_numerical(move):
 		print("You must enter a number.")
 
@@ -111,12 +112,14 @@ while True: # nic nerobi
 	elif not grid.read(int(move)) == 0:
 		print("This field is already claimed.")
 
-	move = int(move)
-	grid.write(move, player_turn)
-
-	if player_turn == 2:
-		player_turn = 1
 	else:
-		player_turn = 2
-	print("It's player %s's turn!" % (str(player_turn)))
-	print(grid.get())
+
+		move = int(move)
+		grid.write(move, player_turn)
+	
+		if player_turn == 2:
+			player_turn = 1
+		else:
+			player_turn = 2
+		print("It's player %s's turn!" % (str(player_turn)))
+		print(grid.get())
