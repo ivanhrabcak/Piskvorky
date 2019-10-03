@@ -1,4 +1,4 @@
-import sys, math
+import sys, math, random
 
 grid_help = """
 |-------|-------|-------|
@@ -36,12 +36,22 @@ def in_range(n, r): # r = [min, max]
 		else:
 			return(False)
 
+class AI: # haha
+	def __init__(self, grid_max, seed = "random"):
+		if not seed == "random" and type(seed) == int:
+			random.seed(seed)
+		self.max = grid_max
+		
+	def move(self):
+		return(random.randint(1, self.max))
+
 class Grid:
 	def __init__(self, l = [], shape = (3, 3)):
 		self.shape = shape
 		if l == []:
 			l = self.grid()
 
+		self.max = shape[0] * shape[1]
 		self.grid = l
 
 	def grid(self):
@@ -122,6 +132,11 @@ grid_list = []
 grid_max = grid_shape[0] * grid_shape[1] # tazka matika
 grid = Grid(l = [[0,0,0], [0,0,0], [0,0,0]], shape = grid_shape)
 
+ai_enabled = True
+
+if ai_enabled:
+	ai = AI(grid_max, seed = 1)
+
 grid.draw()
 
 while True: # nic nerobi
@@ -139,10 +154,19 @@ while True: # nic nerobi
 
 		move = int(move)
 		grid.write(move, player_turn)
-	
-		if player_turn == 2:
-			player_turn = 1
+		if not ai_enabled:
+			if player_turn == 2:
+				player_turn = 1
+			else:
+				player_turn = 2
+			print("It's player %s's turn!" % (str(player_turn)))
 		else:
-			player_turn = 2
-		print("It's player %s's turn!" % (str(player_turn)))
+			move = ai.move()
+			if not grid.read(int(move)) == 0:
+				while True:
+					move = ai.move()
+					if grid.read(int(move)) == 0:
+						break
+			else:
+				grid.write(move, 2)
 		grid.draw()
