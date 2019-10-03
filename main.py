@@ -88,8 +88,8 @@ class Grid:
 		list_number = math.floor(i / self.shape[1])
 		return(list_number)
 
-	def get_position(self, index, i):
-		pass
+	def get_position(self, i): # ????
+		return(math.floor(self.shape[0] / i))
 
 player_turn = 1
 
