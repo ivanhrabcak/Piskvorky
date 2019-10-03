@@ -58,7 +58,7 @@ class Grid:
 	def get(self):
 		return(self.grid)
 
-	def read(self, i):
+	def read(self, i): # dá sa to urobiť aj lepšie?
 		i -= 1 # counting from zero
 		l = []
 		for item in self.grid:
@@ -66,7 +66,7 @@ class Grid:
 				l.append(n)
 		return(l[i])
 
-	def write(self, move, new):
+	def write(self, move, new): # dá sa to urobiť aj lepšie?
 		move -= 1 # counting from zero
 		copy = []
 		for item in self.grid:
@@ -89,17 +89,40 @@ class Grid:
 			g.append(objs)
 			index_multiplier += max_obj
 
-	def draw(self):
-		pass
+	def transform(self):
+		g = []
+		for item in self.grid:
+			for n in item:
+				g.append(n)
+		return(g)
 
+	def draw(self):
+		def draw_line():
+			g = self.transform()
+			grid_outer_1 = "|-------|"
+			grid_outer_2 = "|   n   |"
+			grid_outer_3 = "|-------|"
+			grid_inner_1 = "-------|"
+			grid_inner_2 = "   n   |"
+			grid_inner_3 = "-------|"
+			print(grid_outer_1 + grid_inner_1 * (self.shape[1] - 1))
+			for n in range(0, self.shape[1]):
+				line = self.grid[n]
+				for i in range(0, len(line)):
+					if i == 0:
+						print(grid_outer_2.replace("n", str(line[0])), end = "")
+					else:
+						print(grid_inner_2.replace("n", str(line[i])), end = "")
+				print("\n" + grid_outer_3 + grid_inner_3 * (self.shape[1] - 1))
+		draw_line()
 player_turn = 1
 
 grid_shape = (3, 3)
 grid_list = []
 grid_max = grid_shape[0] * grid_shape[1] # tazka matika
-grid = Grid(l = [[0,0,0], [1,0,0], [0,0,0]], shape = grid_shape)
+grid = Grid(l = [[0,0,0], [0,0,0], [0,0,0]], shape = grid_shape)
 
-print(grid_help)
+grid.draw()
 
 while True: # nic nerobi
 	move = input("\nMove? ")
@@ -122,4 +145,4 @@ while True: # nic nerobi
 		else:
 			player_turn = 2
 		print("It's player %s's turn!" % (str(player_turn)))
-		print(grid.get())
+		grid.draw()
