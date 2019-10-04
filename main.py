@@ -1,21 +1,5 @@
 import sys, math, random
 
-grid_help = """
-|-------|-------|-------|
-|   1   |   2   |   3   |
-|-------|-------|-------|
-|   4   |   5   |   6   |
-|-------|-------|-------|
-|   7   |   8   |   9   |
-|-------|-------|-------|
-
-"""
-"""
-grid_list = [[0, 0, 0],
-			 [0, 0, 0],
-			 [0, 0, 0]]
-"""
-
 def is_numerical(string):
 	try:
 		int(string)
@@ -37,24 +21,24 @@ def in_range(n, r): # r = [min, max]
 			return(False)
 
 class AI: # haha
-	def __init__(self, grid_max, seed = "random"):
+	def __init__(self, grid_max, seed = "random"): # grid_max = Grid.shape[0] * Grid.shape[1]
 		if not seed == "random" and type(seed) == int:
 			random.seed(seed)
 		self.max = grid_max
 		
-	def move(self):
+	def move(self): # Return a random number
 		return(random.randint(1, self.max))
 
 class Grid:
-	def __init__(self, l = [], shape = (3, 3)):
+	def __init__(self, l = [], shape = (3, 3)): # l - grid storage
 		self.shape = shape
 		if l == []:
-			l = self.grid()
+			l = self.gen()
 
 		self.max = shape[0] * shape[1]
 		self.grid = l
 
-	def grid(self):
+	def gen(self): # Generate 2d array with zeros
 		shape = self.shape
 
 		l = []
@@ -65,23 +49,17 @@ class Grid:
 			l.append(line)
 		return(l)
 
-	def get(self):
+	def get(self): # return the grid list (l)
 		return(self.grid)
 
-	def read(self, i): # dá sa to urobiť aj lepšie?
+	def read(self, i): # read the field i (README grid numbering help);     dá sa to urobiť aj lepšie?
 		i -= 1 # counting from zero
-		l = []
-		for item in self.grid:
-			for n in item:
-				l.append(n)
+		l = self.transform()
 		return(l[i])
 
-	def write(self, move, new): # dá sa to urobiť aj lepšie?
+	def write(self, move, new): # write to the field move (README grid numbering help); dá sa to urobiť aj lepšie?
 		move -= 1 # counting from zero
-		copy = []
-		for item in self.grid:
-			for n in item:
-				copy.append(n)
+		copy = self.transform()
 		copy[move] = new # overwrite old value
 		max_value = self.shape[0] * self.shape[1]
 		max_obj = self.shape[0]
@@ -99,14 +77,54 @@ class Grid:
 			g.append(objs)
 			index_multiplier += max_obj
 
-	def transform(self):
+	def transform(self): # [[0, 0, 0], [1, 1, 1], [2, 2, 2]] ---) [0, 0, 0, 1, 1, 1, 2, 2, 2]
 		g = []
 		for item in self.grid:
 			for n in item:
 				g.append(n)
 		return(g)
 
-	def draw(self):
+	def check_win(self, player_turn): # check if a player has won
+		# Check diagonals \, /
+		skip = self.shape[1]
+		index = 0
+		cp = self.transform()
+		for i in cp:
+			if not (index + skip * 2 + 2) >= len(cp):
+				if i == cp[index + skip + 1] and i == cp[index + skip * 2 + 2] and not i == 0:
+					print("Player {} has won!".format(player_turn))
+					sys.exit()
+			elif not (index + skip * 2 - 2) >= len(cp):
+				if i == cp[index + skip - 1] and i == cp[index + skip * 2 - 2] and not i == 0:
+					print("Player {} has won!".format(player_turn))
+					sys.exit()
+
+			index += 1
+
+		# Check horizontal lines ---), (---
+		index = 0
+		cp = self.transform()
+		for i in cp:
+			if not (index + 2) > len(cp):
+				if i == cp[index + 1] and i == cp[index + 2] and not i == 0:
+					print("Player {} has won!".format(player_turn))
+					sys.exit()
+			elif not (index - 2 > len(cp)):
+				if i == cp[index - 1] and i == cp[index - 2] and not i == 0:
+					print("Player {} has won!".format(player_turn))
+					sys.exit()
+
+		
+		# Check draw
+		zero_count = 0 
+		for i in self.transform():
+			if i == 0:
+				zero_count += 1
+		if zero_count == 0:
+			print("Draw!")
+			sys.exit()
+
+	def draw(self): # print the grid nicely
 		def draw_line():
 			g = self.transform()
 			grid_outer_1 = "|-------|"
@@ -129,17 +147,17 @@ player_turn = 1
 
 grid_shape = (3, 3)
 grid_list = []
-grid_max = grid_shape[0] * grid_shape[1] # tazka matika
-grid = Grid(l = [[0,0,0], [0,0,0], [0,0,0]], shape = grid_shape)
+grid_max = grid_shape[0] * grid_shape[1]
+grid = Grid(l = grid_list, shape = grid_shape)
 
-ai_enabled = True
+ai_enabled = False
 
 if ai_enabled:
 	ai = AI(grid_max, seed = 1)
 
 grid.draw()
 
-while True: # nic nerobi
+while True:
 	move = input("\nMove? ")
 	if not is_numerical(move):
 		print("You must enter a number.")
@@ -151,9 +169,9 @@ while True: # nic nerobi
 		print("This field is already claimed.")
 
 	else:
-
 		move = int(move)
 		grid.write(move, player_turn)
+		grid.check_win(player_turn)
 		if not ai_enabled:
 			if player_turn == 2:
 				player_turn = 1
@@ -166,6 +184,7 @@ while True: # nic nerobi
 				while True:
 					move = ai.move()
 					if grid.read(int(move)) == 0:
+						grid.write(move, 2)
 						break
 			else:
 				grid.write(move, 2)
