@@ -106,31 +106,6 @@ class Grid:
 				g.append(n)
 		return(g)
 
-	def check_win(self): # only works when shape is (3, 3)
-		if self.grid[0][0] == self.grid[1][0] and self.grid[1][0] == self.grid[2][0] and not self.grid[0][0] == 0 :
-			print("Player %s has won!" % (str(self.read(1))))
-			print(1)
-			sys.exit()
-		elif self.grid[0][1] == self.grid[1][1] and self.grid[1][1] == self.grid[2][1] and not self.grid[0][1] == 0 :
-			print("Player %s has won!" % (str(self.read(2))))
-			print(2) 
-			sys.exit()
-		elif self.grid[0][2] == self.grid[1][2] and self.grid[1][2] == self.grid[2][2] and not self.grid[0][2] == 0 :
-			print("Player %s has won!" % (str(self.read(3))))
-			print(3)
-			sys.exit()
-		elif self.grid[0][0] == self.grid[0][1] and self.grid[0][1] == self.grid[0][2] and not self.grid[0][0] == 0 :
-			print("Player %s has won!" % (str(self.read(1))))
-			print(4)
-			sys.exit()
-		elif self.grid[1][0] == self.grid[1][1] and self.grid[1][1] == self.grid[1][2] and not self.grid[1][0] == 0 :
-			print("Player %s has won!" % (str(self.read(4))))
-			print(5)
-			sys.exit()
-		elif self.grid[2][0] == self.grid[2][1] and self.grid[2][1] == self.grid[2][2] and not self.grid[2][0] == 0 :
-			print("Player %s has won!" % (str(self.read(7))))
-			print(6)
-			sys.exit()
 	def draw(self):
 		def draw_line():
 			g = self.transform()
@@ -176,9 +151,9 @@ while True: # nic nerobi
 		print("This field is already claimed.")
 
 	else:
+
 		move = int(move)
 		grid.write(move, player_turn)
-		grid.check_win()
 		if not ai_enabled:
 			if player_turn == 2:
 				player_turn = 1
@@ -190,9 +165,7 @@ while True: # nic nerobi
 			if not grid.read(int(move)) == 0:
 				while True:
 					move = ai.move()
-					print(move)
 					if grid.read(int(move)) == 0:
-						grid.write(move, 2)
 						break
 			else:
 				grid.write(move, 2)
