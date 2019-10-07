@@ -74,12 +74,12 @@ class Grid:
 	def get(self): # return the grid list (l)
 		return(self.grid)
 
-	def read(self, i): # read the field i (README grid numbering help);     dá sa to urobiť aj lepšie?
+	def read(self, i): # read the field i (README grid numbering help);     da sa to urobit aj lepsie?
 		i -= 1 # counting from zero
 		l = self.transform()
 		return(l[i])
 
-	def write(self, move, new): # write to the field move (README grid numbering help); dá sa to urobiť aj lepšie?
+	def write(self, move, new): # write to the field move (README grid numbering help); da sa to urobit aj lepsie?
 		move -= 1 # counting from zero
 		copy = self.transform()
 		copy[move] = new # overwrite old value
@@ -115,11 +115,13 @@ class Grid:
 			if not (index + skip * 2 + 2) >= len(cp):
 				if i == cp[index + skip + 1] and i == cp[index + skip * 2 + 2] and not i == 0:
 					print("Player {} has won!".format(player_turn))
-					sys.exit()
+					self.draw()
+					sys.exit(print("Case 1"))
 			elif not (index + skip * 2 - 2) >= len(cp):
-				if i == cp[index + skip - 1] and i == cp[index + skip * 2 - 2] and not i == 0:
+				if i == cp[index + skip - 1] and i == cp[index + skip * 2 - 2] and not i == 0: # Bug je tu!!!!!
 					print("Player {} has won!".format(player_turn))
-					sys.exit()
+					self.draw()
+					sys.exit(print("Case 2"))
 
 			index += 1
 
@@ -128,13 +130,15 @@ class Grid:
 		cp = self.transform()
 		for i in cp:
 			if not (index + 2) > len(cp):
-				if i == cp[index + 1] and i == cp[index + 2] and not i == 0:
+				if i == cp[index + 1] and i == cp[index + 2] and not i == 0: # Aj tu!!!?
 					print("Player {} has won!".format(player_turn))
-					sys.exit()
+					self.draw()
+					sys.exit(print("Case 3"))
 			elif not (index - 2 > len(cp)):
 				if i == cp[index - 1] and i == cp[index - 2] and not i == 0:
 					print("Player {} has won!".format(player_turn))
-					sys.exit()
+					self.draw()
+					sys.exit(print("Case 4"))
 
 		
 		# Check draw
@@ -172,7 +176,7 @@ grid_list = []
 grid_max = grid_shape[0] * grid_shape[1]
 grid = Grid(l = grid_list, shape = grid_shape)
 
-ai_enabled = False
+ai_enabled = True
 
 if ai_enabled:
 	ai = AI(grid_max, seed = 1)
