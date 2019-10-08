@@ -1,4 +1,5 @@
 import sys, math, random
+
 """
 ## Grid numbering help
 
@@ -22,6 +23,7 @@ import sys, math, random
 |   2   | - Player 2
 |-------|
 """
+
 def is_numerical(string):
 	try:
 		int(string)
@@ -118,7 +120,7 @@ class Grid:
 					self.draw()
 					sys.exit(print("Case 1"))
 			elif not (index + skip * 2 - 2) >= len(cp):
-				if i == cp[index + skip - 1] and i == cp[index + skip * 2 - 2] and not i == 0: # Bug je tu!!!!!
+				if i == cp[index + skip - 1] and i == cp[index + skip * 2 - 2] and not i == 0:
 					print("Player {} has won!".format(player_turn))
 					self.draw()
 					sys.exit(print("Case 2"))
@@ -129,18 +131,18 @@ class Grid:
 		index = 0
 		cp = self.transform()
 		for i in cp:
-			if not (index + 2) > len(cp):
-				if i == cp[index + 1] and i == cp[index + 2] and not i == 0: # Aj tu!!!?
+			print(index + 2, len(cp))
+			if not (index + 2) >= len(cp) and not (index + 2) < 0:
+				if i == cp[index + 1] and i == cp[index + 2] and not i == 0:  
 					print("Player {} has won!".format(player_turn))
 					self.draw()
 					sys.exit(print("Case 3"))
-			elif not (index - 2 > len(cp)):
-				if i == cp[index - 1] and i == cp[index - 2] and not i == 0:
+			if not ((index - 2) > len(cp) and not (index - 2) < 0):
+				if i == cp[index - 1] and i == cp[index - 2] and not i == 0:		
 					print("Player {} has won!".format(player_turn))
 					self.draw()
 					sys.exit(print("Case 4"))
-
-		
+			index += 1
 		# Check draw
 		zero_count = 0 
 		for i in self.transform():
@@ -176,7 +178,7 @@ grid_list = []
 grid_max = grid_shape[0] * grid_shape[1]
 grid = Grid(l = grid_list, shape = grid_shape)
 
-ai_enabled = True
+ai_enabled = False
 
 if ai_enabled:
 	ai = AI(grid_max, seed = 1)
