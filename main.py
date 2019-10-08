@@ -1,4 +1,4 @@
-import sys, math, random
+import sys, math, random, socket, time, json
 
 """
 ## Grid numbering help
@@ -43,6 +43,90 @@ def in_range(n, r): # r = [min, max]
 			return(True)
 		else:
 			return(False)
+
+class Client:
+	def __init__(self, host, port):
+		self.port = port
+		self.host = host
+		self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+	def send(self, m):
+		s = self.s
+
+		if type(m) == bytes:
+			message = m
+		else:
+			message = bytes(str(m), "utf8")
+
+		s.sendall(message)
+
+
+	def recv(self):
+		s = self.s
+		return(s.recv(1024).decode("utf8"))
+
+	def connect(self):
+		HOST = self.host
+		PORT = self.port
+		s = self.s
+
+		s.connect((HOST, PORT))
+
+class Server:
+	def __init__(self, port, shape = (3, 3)):
+		self.port = port
+		self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		self.shape = shape
+
+	def send(self, conn, m):
+		if type(m) == bytes:
+			message = m
+		else:
+			message = bytes(str(m), "utf8")
+
+		conn.sendall(message)
+
+	def recv(self, conn):
+		return(conn.recv(1024).decode("utf8"))
+
+	def listen(self):
+		PORT = self.port
+		HOST = "127.0.0.1"
+		s = self.s
+
+		s.bind((HOST, PORT))
+		s.listen()
+		conn, addr = s.accept()
+		self.handle(conn, addr)
+
+	def handle(self, conn, addr):
+		print("%s has connected!" % (str(addr)))
+		self.g_list = []
+		self.g = Grid(l = self.g_list, shape = self.shape)
+		self.send(conn, json.dumps(self.g.get()))
+		self.player_turn = 1
+		while True:
+			move = self.recv(conn)
+			self.g.write(self.player_turn, move)
+		
+			move = input("\nMove? ")
+			if not is_numerical(move):
+				print("You must enter a number.")
+	
+			elif not in_range(int(move), [1, grid_max]):
+				print("This is not a valid field.")
+		
+			elif not grid.read(int(move)) == 0:
+				print("This field is already claimed.")
+	
+			else:
+				move = int(move)
+				self.g.write(move, player_turn)
+				self.g.check_win(player_turn)
+			grid.draw()
+			self.send(conn, json.dumps(self.g.get()))
+
+
 
 class AI: # haha
 	def __init__(self, grid_max, seed = "random"): # grid_max = Grid.shape[0] * Grid.shape[1]
@@ -171,6 +255,7 @@ class Grid:
 						print(grid_inner_2.replace("n", str(line[i])), end = "")
 				print("\n" + grid_outer_3 + grid_inner_3 * (self.shape[1] - 1))
 		draw_line()
+
 player_turn = 1
 
 grid_shape = (3, 3)
