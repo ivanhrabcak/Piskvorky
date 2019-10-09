@@ -130,7 +130,7 @@ class Server:
 
 class AI: # haha
 	def __init__(self, grid_max, seed = "random"): # grid_max = Grid.shape[0] * Grid.shape[1]
-		if not seed == "random" and type(seed) == int:
+		if seed != "random" and type(seed) == int:
 			random.seed(seed)
 		self.max = grid_max
 		
@@ -147,23 +147,23 @@ class Grid:
 		self.grid = l
 
 	def gen(self): # Generate 2d array with zeros
-		shape = self.shape
-
-		l = []
-		for i in range(0, shape[1]):
-			line = []
-			for i in range(0, shape[0]):
-				line.append(0)
-			l.append(line)
-		return(l)
+		l = [[]] * self.shape[1]
+		# l = []
+		for i in range(0, self.shape[1]):
+			# line = []
+			# for i in range(0, shape[0]):
+			# 	line.append(0)
+			# l.append(line)
+			l[i] = [0] * self.shape[0]
+		return l
 
 	def get(self): # return the grid list (l)
-		return(self.grid)
+		return self.grid
 
 	def read(self, i): # read the field i (README grid numbering help);     da sa to urobit aj lepsie?
 		i -= 1 # counting from zero
 		l = self.transform()
-		return(l[i])
+		return l[i]
 
 	def write(self, move, new): # write to the field move (README grid numbering help); da sa to urobit aj lepsie?
 		move -= 1 # counting from zero
@@ -190,7 +190,7 @@ class Grid:
 		for item in self.grid:
 			for n in item:
 				g.append(n)
-		return(g)
+		return g
 
 	def check_win(self, player_turn): # check if a player has won
 		# Check diagonals \, /
@@ -215,7 +215,6 @@ class Grid:
 		index = 0
 		cp = self.transform()
 		for i in cp:
-			print(index + 2, len(cp))
 			if not (index + 2) >= len(cp) and not (index + 2) < 0:
 				if i == cp[index + 1] and i == cp[index + 2] and not i == 0:  
 					print("Player {} has won!".format(player_turn))
@@ -274,6 +273,7 @@ while True:
 	move = input("\nMove? ")
 	if not is_numerical(move):
 		print("You must enter a number.")
+		continue
 
 	elif not in_range(int(move), [1, grid_max]):
 		print("This is not a valid field.")
@@ -302,3 +302,5 @@ while True:
 			else:
 				grid.write(move, 2)
 		grid.draw()
+
+
