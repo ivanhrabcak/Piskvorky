@@ -92,10 +92,9 @@ class Server:
 	def listen(self):
 		PORT = self.port
 		HOST = "127.0.0.1"
-		s = self.s
 
-		s.bind((HOST, PORT))
-		s.listen()
+		self.s.bind((HOST, PORT))
+		self.s.listen()
 		conn, addr = s.accept()
 		self.handle(conn, addr)
 
@@ -103,7 +102,7 @@ class Server:
 		print("%s has connected!" % (str(addr)))
 		self.g_list = []
 		self.g = Grid(l = self.g_list, shape = self.shape)
-		self.send(conn, json.dumps(self.g.get()))
+		self.send(conn, json.dumps(self.g.grid))
 		self.player_turn = 1
 		while True:
 			move = self.recv(conn)
@@ -124,7 +123,7 @@ class Server:
 				self.g.write(move, player_turn)
 				self.g.check_win(player_turn)
 			grid.draw()
-			self.send(conn, json.dumps(self.g.get()))
+			self.send(conn, json.dumps(self.g.grid))
 
 
 
@@ -135,62 +134,28 @@ class AI: # haha
 		self.max = grid_max
 		
 	def move(self): # Return a random number
-		return(random.randint(1, self.max))
+		return random.randint(1, self.max)
 
 class Grid:
-	def __init__(self, l = [], shape = (3, 3)): # l - grid storage
+	def __init__(self, grid_storage = [], shape = (3, 3)): # l - grid storage
 		self.shape = shape
 		if l == []:
-			l = self.gen()
+			grid_storage = self.gen()
 
 		self.max = shape[0] * shape[1]
-		self.grid = l
+		self.grid = grid_storage
 
 	def gen(self): # Generate 2d array with zeros
 		l = [[]] * self.shape[1]
-		# l = []
 		for i in range(0, self.shape[1]):
-			# line = []
-			# for i in range(0, shape[0]):
-			# 	line.append(0)
-			# l.append(line)
 			l[i] = [0] * self.shape[0]
 		return l
 
-	def get(self): # return the grid list (l)
-		return self.grid
+	def read(self, i): # read the field i (README grid numbering help)
+		return self.grid[self.get_index(i)][self.get_position(i)]
 
-	def read(self, i): # read the field i (README grid numbering help);     da sa to urobit aj lepsie?
-		i -= 1 # counting from zero
-		l = self.transform()
-		return l[i]
-
-	def write(self, move, new): # write to the field move (README grid numbering help); da sa to urobit aj lepsie?
-		move -= 1 # counting from zero
-		copy = self.transform()
-		copy[move] = new # overwrite old value
-		max_value = self.shape[0] * self.shape[1]
-		max_obj = self.shape[0]
-		g = []
-		index_multiplier = 0
-		for n in range(0, max_value):
-			objs = []
-			for index in range(0, max_obj):
-				index += index_multiplier
-				try:
-					objs.append(copy[index])
-				except Exception:
-					self.grid = g
-					return(True)
-			g.append(objs)
-			index_multiplier += max_obj
-
-	def transform(self): # [[0, 0, 0], [1, 1, 1], [2, 2, 2]] ---) [0, 0, 0, 1, 1, 1, 2, 2, 2]
-		g = []
-		for item in self.grid:
-			for n in item:
-				g.append(n)
-		return g
+	def write(self, move, new): # write to the field move (README grid numbering help)
+		self.grid[self.get_index(move)][self.get_position(move)] = new
 
 	def check_win(self, player_turn): # check if a player has won
 		# Check diagonals \, /
@@ -202,12 +167,12 @@ class Grid:
 				if i == cp[index + skip + 1] and i == cp[index + skip * 2 + 2] and not i == 0:
 					print("Player {} has won!".format(player_turn))
 					self.draw()
-					sys.exit(print("Case 1"))
+					return "Case 1"
 			elif not (index + skip * 2 - 2) >= len(cp):
 				if i == cp[index + skip - 1] and i == cp[index + skip * 2 - 2] and not i == 0:
 					print("Player {} has won!".format(player_turn))
 					self.draw()
-					sys.exit(print("Case 2"))
+					return "Case 2"
 
 			index += 1
 
@@ -219,12 +184,12 @@ class Grid:
 				if i == cp[index + 1] and i == cp[index + 2] and not i == 0:  
 					print("Player {} has won!".format(player_turn))
 					self.draw()
-					sys.exit(print("Case 3"))
+					return "Case 3"
 			if not ((index - 2) > len(cp) and not (index - 2) < 0):
 				if i == cp[index - 1] and i == cp[index - 2] and not i == 0:		
 					print("Player {} has won!".format(player_turn))
 					self.draw()
-					sys.exit(print("Case 4"))
+					return "Case 4"
 			index += 1
 		# Check draw
 		zero_count = 0 
@@ -233,7 +198,8 @@ class Grid:
 				zero_count += 1
 		if zero_count == 0:
 			print("Draw!")
-			sys.exit()
+			return "Draw"
+		return False
 
 	def draw(self): # print the grid nicely
 		def draw_line():
@@ -254,6 +220,12 @@ class Grid:
 						print(grid_inner_2.replace("n", str(line[i])), end = "")
 				print("\n" + grid_outer_3 + grid_inner_3 * (self.shape[1] - 1))
 		draw_line()
+
+	def get_index(self, i):
+		return i / self.shape[0]
+
+	def get_posititon(self, i):
+		return i % self.shape[0]
 
 player_turn = 1
 
@@ -277,30 +249,33 @@ while True:
 
 	elif not in_range(int(move), [1, grid_max]):
 		print("This is not a valid field.")
+		continue
 	
 	elif not grid.read(int(move)) == 0:
 		print("This field is already claimed.")
-
-	else:
-		move = int(move)
-		grid.write(move, player_turn)
-		grid.check_win(player_turn)
-		if not ai_enabled:
-			if player_turn == 2:
-				player_turn = 1
-			else:
-				player_turn = 2
-			print("It's player %s's turn!" % (str(player_turn)))
+		continue
+	
+	move = int(move)
+	grid.write(move, player_turn)
+	win = grid.check_win(player_turn)
+	if win != False:
+                break
+	if not ai_enabled:
+                if player_turn == 2:
+			player_turn = 1
 		else:
-			move = ai.move()
-			if not grid.read(int(move)) == 0:
-				while True:
-					move = ai.move()
-					if grid.read(int(move)) == 0:
-						grid.write(move, 2)
-						break
-			else:
-				grid.write(move, 2)
-		grid.draw()
+			player_turn = 2
+		print("It's player %s's turn!" % (str(player_turn)))
+	else:
+		move = ai.move()
+		if not grid.read(int(move)) == 0:
+			while True:
+				move = ai.move()
+				if grid.read(int(move)) == 0:
+					grid.write(move, 2)
+					break
+		else:
+			grid.write(move, 2)
+	grid.draw()
 
 
