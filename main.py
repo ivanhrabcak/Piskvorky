@@ -95,13 +95,13 @@ class Server:
 
 		self.s.bind((HOST, PORT))
 		self.s.listen()
-		conn, addr = s.accept()
+		conn, addr = self.s.accept()
 		self.handle(conn, addr)
 
 	def handle(self, conn, addr):
 		print("%s has connected!" % (str(addr)))
 		self.g_list = []
-		self.g = Grid(l = self.g_list, shape = self.shape)
+		self.g = Grid(grid_storage = self.g_list, shape = self.shape)
 		self.send(conn, json.dumps(self.g.grid))
 		self.player_turn = 1
 		while True:
@@ -152,6 +152,7 @@ class Grid:
 		return l
 
 	def read(self, i): # read the field i (README grid numbering help)
+		i -= 1
 		return self.grid[self.get_index(i)][self.get_position(i)]
 
 	def write(self, move, new): # write to the field move (README grid numbering help)
@@ -160,68 +161,45 @@ class Grid:
 	def check_win(self, player_turn):
 		# Diagonals
 		for x in range(0, self.shape[1]):
-			if x + 2 < self.shape[1]:
+			if x + 2 < self.shape[1]: # Case 1
 				for y in range(0, self.shape[0]):
-					if y + 2 <  self.shape[0]:
+					if y + 2 >=  self.shape[0]:
 						continue
 					i = self.grid[x][y]
-					if i == self.grid[x + 1][y + 1] and i == self.grid[x + 2][y +2]:
-						print("Player {} has won!"-.format())
+					if i == self.grid[x + 1][y + 1] and i == self.grid[x + 2][y +2] and i != 0:
+						print("Player %s has won!" % (player_turn))
 						return "Case 1"
-#		
-# Check diagonals \, /
-#		skip = self.shape[1]
-#		index = 0
-#		cp = self.transform()
-#		for i in cp:
-#			if not (index + skip * 2 + 2) >= len(cp):
-#				if i == cp[index + skip + 1] and i == cp[index + skip * 2 + 2] and not i == 0:
-#					print("Player {} has won!".format(player_turn))
-#					self.draw()
-#					return "Case 1"
-#			elif not (index + skip * 2 - 2) >= len(cp):
-#				if i == cp[index + skip - 1] and i == cp[index + skip * 2 - 2] and not i == 0:
-#					print("Player {} has won!".format(player_turn))
-#					self.draw()
-#					return "Case 2"
-#
-#			index += 1
-#
-#		# Check horizontal lines ---), (---
-#		index = 0
-#		cp = self.transform()
-#		for i in cp:
-#			if not (index + 2) >= len(cp) and not (index + 2) < 0:
-#				if i == cp[index + 1] and i == cp[index + 2] and not i == 0:  
-#					print("Player {} has won!".format(player_turn))
-#					self.draw()
-#					return "Case 3"
-#			if not ((index - 2) > len(cp) and not (index - 2) < 0):
-#				if i == cp[index - 1] and i == cp[index - 2] and not i == 0:		
-#					print("Player {} has won!".format(player_turn))
-#					self.draw()
-#					return "Case 4"
-#			index += 1
-#		# Check draw
-#		zero_count = 0 
-#		for i in self.transform():
-#			if i == 0:
-#				zero_count += 1
-#		if zero_count == 0:
-#			print("Draw!")
-#			return "Draw"
-#		return False
-
-	def transform(self): # [[0, 0, 0], [1, 1, 1], [2, 2, 2]] ---) [0, 0, 0, 1, 1, 1, 2, 2, 2]
-		g = []
-		for item in self.grid:
-			for n in item:
-				g.append(n)
-		return g
+			
+			if x + 2 < self.shape[1]: # Case 2
+				for y in range(0, self.shape[1]):
+					if y - 2 < 0:
+						continue
+					i = self.grid[x][y]
+					if i == self.grid[x + 1][y - 1] and i == self.grid[x + 2][y - 2] and i != 0:
+						print("Player %s has won!" % (player_turn))
+						return "Case 2"
+		# |
+		for x in range(0, self.shape[1]):
+			if x + 2 < self.shape[1]:
+				for y in range(0, self.shape[0]):
+					i = self.grid[x][y]
+					if i == self.grid[x + 1][y] and i == self.grid[x + 2][y] and i != 0:
+						print("Player %s has won!" % (player_turn))
+						return "Case 3"
+		
+		# ---
+		for x in range(0, self.shape[1]):
+			for y in range(0, self.shape[0]):
+				if y + 2 >= self.shape[1]:
+					continue
+				i = self.grid[x][y]
+				if i == self.grid[x][y + 1] and i == self.grid[x][y + 2] and i != 0:
+					print("Player %s has won!" % (player_turn))
+					return "Case 4"
+		return False
 
 	def draw(self): # print the grid nicely
 		def draw_line():
-			g = self.transform()
 			grid_outer_1 = "|-------|"
 			grid_outer_2 = "|   n   |"
 			grid_outer_3 = "|-------|"
@@ -231,6 +209,7 @@ class Grid:
 			print(grid_outer_1 + grid_inner_1 * (self.shape[1] - 1))
 			for n in range(0, self.shape[1]):
 				line = self.grid[n]
+
 				for i in range(0, len(line)):
 					if i == 0:
 						print(grid_outer_2.replace("n", str(line[0])), end = "")
@@ -277,6 +256,7 @@ while True:
 	grid.write(move, player_turn)
 	win = grid.check_win(player_turn)
 	if win != False:
+			print(win)
 			break	
 	if not ai_enabled:
 			if player_turn == 2:
@@ -295,5 +275,4 @@ while True:
 		else:
 			grid.write(move, 2)
 	grid.draw()
-
 
